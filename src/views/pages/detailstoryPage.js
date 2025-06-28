@@ -1,4 +1,3 @@
-// pages/story-detail-page.js
 import detailstoryPresenter from "../../presenters/detailstoryPresenter";
 
 class detailstoryPage {
@@ -7,9 +6,10 @@ class detailstoryPage {
   constructor() {
     this.#presenter = new detailstoryPresenter(this);
   }
+
   async render() {
     return `
-     <a id="skip-to-content" href="#main-content" class="skip-link">
+        <a id="skip-to-content" href="#main-content" class="skip-link">
       <section class="story-detail container">
         <a href="#/stories" class="back-link">&laquo; Kembali</a>
         <div id="storyContent" class="story-detail__body">
@@ -38,14 +38,13 @@ class detailstoryPage {
         this.#setupMap();
       }
 
+      await this.#presenter.showSaveButton();
       this.#focusMainContent();
     } catch (error) {
-      this.#renderError(
-        container,
-        `Tidak dapat menampilkan cerita. ${error.message}`
-      );
+      this.#renderError(container, `Tidak dapat menampilkan cerita. ${error.message}`);
     }
   }
+
   #extractStoryIdFromURL() {
     const hash = window.location.hash;
     const segments = hash.split("/");
@@ -67,20 +66,17 @@ class detailstoryPage {
            class="story-image" />
       <p class="story-description">${storyData.description}</p>
       ${mapSection}
+      <div id="save-actions-container" class="save-actions"></div>
     `;
   }
 
   #setupMap() {
     const mapElement = document.getElementById("map");
+    if (!mapElement) return;
 
-    if (!mapElement) {
-      console.warn("Map element not found");
-      return;
-    }
     setTimeout(() => {
       const success = this.#presenter.setupCompleteMap(mapElement);
       if (!success) {
-        console.error("Failed to setup map");
         mapElement.innerHTML = '<p class="error">Gagal memuat peta</p>';
       }
     }, 100);
@@ -88,7 +84,6 @@ class detailstoryPage {
 
   #focusMainContent() {
     const mainContent = document.getElementById("main-content");
-
     if (mainContent && window.location.hash.includes("#main-content")) {
       mainContent.focus();
     }
@@ -101,7 +96,7 @@ class detailstoryPage {
       </div>
     `;
   }
-  
+
   async destroy() {
     try {
       this.#presenter.cleanup();
@@ -116,8 +111,37 @@ class detailstoryPage {
       await this.afterRender();
     }
   }
+
   getCurrentStoryData() {
     return this.#presenter.formattedStoryData;
+  }
+
+  renderSaveButton() {
+    const container = document.getElementById("save-actions-container");
+    if (!container) return;
+
+    container.innerHTML = `
+      <button id="save-button" class="btn btn-primary">
+        Simpan Cerita
+      </button>
+    `;
+    document.getElementById("save-button").addEventListener("click", () => {
+      this.#presenter.saveStoryToBookmark();
+    });
+  }
+
+  renderRemoveButton() {
+    const container = document.getElementById("save-actions-container");
+    if (!container) return;
+
+    container.innerHTML = `
+      <button id="remove-button" class="btn btn-danger">
+        Hapus Cerita
+      </button>
+    `;
+    document.getElementById("remove-button").addEventListener("click", () => {
+      this.#presenter.removeStoryFromBookmark();
+    });
   }
 }
 

@@ -4,6 +4,7 @@ import Swal from "sweetalert2";
 import L from "leaflet";
 import MapHelper from "../scripts/utils/map";
 import { showFormattedDate } from "../scripts/utils/index";
+import StoryDatabase from "../scripts/data/story-db";
 
 class detailstoryPresenter {
   #viewInstance = null;
@@ -29,7 +30,7 @@ class detailstoryPresenter {
     return {
       ...story,
       formattedDate: showFormattedDate(story.createdAt),
-      locationInfo: this.#model.getLocationInfo()
+      locationInfo: this.#model.getLocationInfo(),
     };
   }
 
@@ -39,11 +40,13 @@ class detailstoryPresenter {
       icon: "error",
       title: "Kesalahan Saat Memuat Cerita",
       text: error.message,
-      confirmButtonText: "OK"
+      confirmButtonText: "OK",
     });
 
-    if (error.message.includes("Authentication token") || 
-        error.message.includes("Token tidak tersedia")) {
+    if (
+      error.message.includes("Authentication token") ||
+      error.message.includes("Token tidak tersedia")
+    ) {
       this.#redirectToLogin();
     }
   }
@@ -54,7 +57,7 @@ class detailstoryPresenter {
 
   generateMapSectionHTML() {
     const locationInfo = this.#model.getLocationInfo();
-    
+
     if (!locationInfo) {
       return "";
     }
@@ -74,7 +77,7 @@ class detailstoryPresenter {
 
   generatePopupHTML() {
     const popupInfo = this.#model.getPopupInfo();
-    
+
     if (!popupInfo) {
       return "";
     }
@@ -105,31 +108,34 @@ class detailstoryPresenter {
 
   centerMapFromModel() {
     const locationInfo = this.#model.getLocationInfo();
-    
+
     if (!locationInfo || !this.#leafletMap) {
       return false;
     }
 
-    this.#leafletMap.setView([locationInfo.latitude, locationInfo.longitude], 13);
+    this.#leafletMap.setView(
+      [locationInfo.latitude, locationInfo.longitude],
+      13
+    );
     return true;
   }
 
   // Tambah marker berdasarkan data dari model
   addMarkerFromModel() {
     const locationInfo = this.#model.getLocationInfo();
-    
+
     if (!locationInfo || !this.#leafletMap) {
       return false;
     }
 
     const popupHTML = this.generatePopupHTML();
     MapHelper.addMarker(
-      this.#leafletMap, 
-      locationInfo.latitude, 
-      locationInfo.longitude, 
+      this.#leafletMap,
+      locationInfo.latitude,
+      locationInfo.longitude,
       popupHTML
     );
-    
+
     return true;
   }
 
@@ -171,6 +177,38 @@ class detailstoryPresenter {
       return null;
     }
     return this.#formatStoryForView(this.#model.storyData);
+  }
+
+  async saveStoryToBookmark() {
+    const story = this.formattedStoryData;
+    try {
+      await StoryDatabase.putStory(story);
+      this.#viewInstance.renderRemoveButton();
+      Swal.fire("Tersimpan!", "Cerita telah disimpan ke bookmark.", "success");
+    } catch (error) {
+      Swal.fire("Gagal Menyimpan", error.message, "error");
+    }
+  }
+
+  async removeStoryFromBookmark() {
+    const story = this.formattedStoryData;
+    try {
+      await StoryDatabase.deleteStory(story.id);
+      this.#viewInstance.renderSaveButton();
+      Swal.fire("Dihapus!", "Cerita telah dihapus dari bookmark.", "success");
+    } catch (error) {
+      Swal.fire("Gagal Menghapus", error.message, "error");
+    }
+  }
+
+  async showSaveButton() {
+    const story = this.formattedStoryData;
+    const existing = await StoryDatabase.getStoryById(story.id);
+    if (existing) {
+      this.#viewInstance.renderRemoveButton();
+    } else {
+      this.#viewInstance.renderSaveButton();
+    }
   }
 }
 

@@ -1,2 +1,2 @@
-APP_URL=<url_aplikasi>
+APP_URL= https://685ff2f5f9c1d6fd46d76d30--prismatic-lily-f08676.netlify.app/#/login
 MAP_SERVICE_API_KEY=<api_key>

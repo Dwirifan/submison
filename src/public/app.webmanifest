@@ -23,7 +23,7 @@
       "name": "Tambah Cerita",
       "short_name": "Upload",
       "description": "Langsung ke halaman unggah cerita",
-      "url": "/#/upload",
+      "url": "/#/stories/add",
       "icons": [
         {
           "src": "images/logo.png",
@@ -45,6 +45,18 @@
       "type": "image/png",
       "form_factor": "wide"
     },
+     {
+      "src": "images/screenshots/buat.png",
+      "sizes": "2340x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "images/screenshots/tentang.png",
+      "sizes": "2340x1080",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
     {
       "src": "images/screenshots/home-mobile.png",
       "sizes": "1080x2340",
@@ -53,6 +65,24 @@
     },
     {
       "src": "images/screenshots/detail-mobile.png",
+      "sizes": "1080x2340",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "images/screenshots/buat-mobile.png",
+      "sizes": "1080x2340",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "images/screenshots/navbar-mobile.png",
+      "sizes": "1080x2340",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "images/screenshots/tentang-mobile.png",
       "sizes": "1080x2340",
       "type": "image/png",
       "form_factor": "narrow"

@@ -12,12 +12,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     mainContentId: "main-content",
   });
 
+  await registerServiceWorker(); 
+  console.log('Berhasil mendaftarkan service worker.');
+
   const app = new App({
     content: document.querySelector("#main-content"),
     drawerButton: document.querySelector("#drawer-button"),
     navigationDrawer: document.querySelector("#navigation-drawer"),
   });
-  await registerServiceWorker();
 
   Navbar.init();
 
@@ -26,5 +28,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.addEventListener("hashchange", async () => {
     await app.renderPage();
   });
-
 });

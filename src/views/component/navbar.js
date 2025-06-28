@@ -1,5 +1,6 @@
 import auth from "../../scripts/utils/auth";
 import NotificationHelper from "../../scripts/utils/notification-helper";
+import StoryDatabase from "../../scripts/data/story-db";
 
 class Navbar {
   static #currentLogoutListener = null;
@@ -7,24 +8,6 @@ class Navbar {
   static init() {
     this._updateNavigation();
     this._attachHashChangeListener();
-  }
-
-  static _attachHashChangeListener() {
-    window.addEventListener("hashchange", () => {
-      this._updateNavigation();
-    });
-  }
-
-  static _updateNavigation() {
-    const navList = document.getElementById("nav-list");
-    const isLoggedIn = auth.checkLoggedIn();
-    
-    this._cleanupExistingListeners();
-    this._renderNavigation(navList, isLoggedIn);
-    
-    if (isLoggedIn) {
-      this._setupLogoutHandler();
-    }
   }
 
   static _renderNavigation(navList, isLoggedIn) {
@@ -36,44 +19,30 @@ class Navbar {
   }
 
   static _getNavigationItems(isLoggedIn) {
-    return isLoggedIn 
-      ? this._getLoggedInNavigation() 
+    return isLoggedIn
+      ? this._getLoggedInNavigation()
       : this._getLoggedOutNavigation();
   }
 
   static _getLoggedInNavigation() {
     return `
-     <li>
-    <button id="notification-toggle-button" class="button-notif">
-      <i class="fas fa-bell"></i> Aktifkan Notifikasi
-    </button>
-  </li>
+      <li>
+        <button id="notification-toggle-button" class="button-notif">
+          <i class="fas fa-bell"></i>
+        </button>
+      </li>
+      <li>
+        <a href="#/bookmark">
+          <i class="fas fa-bookmark"></i>
+          <span class="badge" id="bookmark-badge"></span>
+        </a>
+      </li>
       <li><a href="#/stories"><i class="fas fa-book"></i> Cerita</a></li>
       <li><a href="#/stories/add"><i class="fas fa-plus"></i> Tambah Cerita</a></li>
       <li><a href="#/about"><i class="fas fa-info-circle"></i> Tentang</a></li>
       <li><a href="#" id="logoutButton"><i class="fas fa-sign-out-alt"></i> Keluar</a></li>
     `;
   }
-  
-  // push notification
-  static async _updateNavigation() {
-  const navList = document.getElementById("nav-list");
-  const isLoggedIn = auth.checkLoggedIn();
-
-  this._cleanupExistingListeners();
-  this._renderNavigation(navList, isLoggedIn);
-
-  if (isLoggedIn) {
-    this._setupLogoutHandler();
-    const notifButton = document.getElementById("notification-toggle-button");
-    if (notifButton) {
-      await NotificationHelper.updateToggleButtonUI(notifButton);
-      notifButton.addEventListener("click", () => {
-        NotificationHelper.toggleSubscription(notifButton);
-      });
-    }
-  }
-}
 
   static _getLoggedOutNavigation() {
     return `
@@ -83,9 +52,59 @@ class Navbar {
     `;
   }
 
+  static async _updateNavigation() {
+    const navList = document.getElementById("nav-list");
+    const isLoggedIn = auth.checkLoggedIn();
+
+    this._cleanupExistingListeners();
+    this._renderNavigation(navList, isLoggedIn);
+
+    if (isLoggedIn) {
+      this._setupLogoutHandler();
+      this.updateBookmarkBadge(); // ✅ tambahkan ini
+
+      const notifButton = document.getElementById("notification-toggle-button");
+
+      if (notifButton && "serviceWorker" in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          await NotificationHelper.updateToggleButtonUI(notifButton);
+
+          notifButton.addEventListener("click", () => {
+            NotificationHelper.toggleSubscription(notifButton);
+          });
+        } catch (err) {
+          console.error("❌ Gagal mendapatkan Service Worker:", err);
+        }
+      }
+    }
+  }
+
+  static async updateBookmarkBadge() {
+    try {
+      const count = await StoryDatabase.countStories();
+      const badge = document.getElementById("bookmark-badge");
+      if (badge) {
+        if (count > 0) {
+          badge.textContent = count;
+          badge.style.display = "inline-block";
+        } else {
+          badge.style.display = "none";
+        }
+      }
+    } catch (err) {
+      console.error("❌ Gagal memuat jumlah bookmark:", err);
+    }
+  }
+
+  static _attachHashChangeListener() {
+    window.addEventListener("hashchange", () => {
+      this._updateNavigation();
+    });
+  }
+
   static _setupLogoutHandler() {
     const logoutButton = document.getElementById("logoutButton");
-    
     const logoutHandler = (e) => {
       this._handleLogout(e);
     };
@@ -108,7 +127,10 @@ class Navbar {
     if (this.#currentLogoutListener) {
       const oldLogoutButton = document.getElementById("logoutButton");
       if (oldLogoutButton) {
-        oldLogoutButton.removeEventListener("click", this.#currentLogoutListener);
+        oldLogoutButton.removeEventListener(
+          "click",
+          this.#currentLogoutListener
+        );
       }
       this.#currentLogoutListener = null;
     }

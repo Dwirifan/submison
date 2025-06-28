@@ -16,10 +16,15 @@ const NotificationHelper = {
 
   // Memeriksa apakah pengguna sudah berlangganan notifikasi
   async isSubscribed() {
-    const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
-    return !!subscription; // Mengembalikan true jika ada subscription, false jika tidak
-  },
+  if (!('serviceWorker' in navigator)) {
+    console.warn('Service Worker tidak tersedia di browser ini.');
+    return false;
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+  const subscription = await registration.pushManager.getSubscription();
+  return !!subscription;
+},
 
   // Proses untuk berlangganan (subscribe)
   async subscribe() {
@@ -96,7 +101,7 @@ const NotificationHelper = {
         await this.subscribe();
       }
     } finally {
-      buttonElement.disabled = false; // Aktifkan kembali tombol setelah selesai
+      buttonElement.disabled = false; 
       this.updateToggleButtonUI(buttonElement);
     }
   },
@@ -109,11 +114,11 @@ const NotificationHelper = {
       const subscribed = await this.isSubscribed();
       if (subscribed) {
         buttonElement.innerHTML =
-          '<i class="fas fa-bell-slash"></i> Nonaktifkan Notifikasi';
+          '<i class="fas fa-bell-slash"></i>';
         buttonElement.classList.add("subscribed");
       } else {
         buttonElement.innerHTML =
-          '<i class="fas fa-bell"></i> Aktifkan Notifikasi';
+          '<i class="fas fa-bell"></i>';
         buttonElement.classList.remove("subscribed");
       }
     } catch (error) {

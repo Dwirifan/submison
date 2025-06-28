@@ -5,6 +5,8 @@ import aboutPage from '../../views/pages/aboutPage';
 import storyPage from '../../views/pages/storyPage';
 import addStoryPage from '../../views/pages/addstoryPage';
 import detailstoryPage from '../../views/pages/detailstoryPage';
+import bookmarkPage from '../../views/pages/bookmarkPage';
+
 
 const routes = {
   '/': new HomePage(),
@@ -14,6 +16,7 @@ const routes = {
   '/stories': new storyPage(),
   '/stories/add': new addStoryPage(),
   '/stories/:id': new detailstoryPage(),
+  '/bookmark': new bookmarkPage,
 
 };
 
